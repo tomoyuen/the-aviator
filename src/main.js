@@ -484,6 +484,7 @@ function loop() {
   airplane.pilot.updateHairs();
 
   renderer.render(scene, camera);
+  window.requestAnimationFrame(loop);
 }
 
 function init() {
