@@ -113,10 +113,8 @@ class Sky {
       const h = 750 + (Math.random() * 200);
       c.mesh.position.y = Math.sin(a) * h;
       c.mesh.position.x = Math.cos(a) * h;
-
-      c.mesh.rotation.z = a + (Math.PI / 2);
-
       c.mesh.position.z = -400 - (Math.random() * 400);
+      c.mesh.rotation.z = a + (Math.PI / 2);
 
       const s = 1 + (Math.random() * 2);
       c.mesh.scale.set(s, s, s);
@@ -427,9 +425,7 @@ function createScene() {
   });
 
   renderer.setSize(deviceWidth, deviceHeight);
-
   renderer.shadowMap.enabled = true;
-
   container = document.getElementById('world');
   container.appendChild(renderer.domElement);
 }
@@ -438,8 +434,6 @@ function createSea() {
   sea.mesh.position.y = -600;
   scene.add(sea.mesh);
 }
-
-sea.moveWaves();
 
 function createLights() {
   const hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
@@ -455,6 +449,7 @@ function createLights() {
   shadowLight.shadow.camera.far = 1000;
   shadowLight.shadow.mapSize.deviceWidth = 2048;
   shadowLight.shadow.mapSize.deviceHeight = 2048;
+
   scene.add(hemisphereLight);
   scene.add(shadowLight);
   scene.add(ambientLight);
@@ -516,6 +511,7 @@ function loop() {
   updatePlane();
   airplane.pilot.updateHairs();
   updateCameraFov();
+  sea.moveWaves();
 
   sky.mesh.rotation.z += 0.01;
 
