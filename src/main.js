@@ -2,11 +2,15 @@
 /* eslint no-console: off */
 /* eslint no-param-reassign: ["error", { "props": false }] */
 import * as THREE from 'three';
-import TweenMax from 'gsap';
 
 import AirPlane from './modules/Airplane';
 import Sea from './modules/Sea';
 import Sky from './modules/Sky';
+import CoinsHolder from './modules/CoinsHolder';
+import Ennemy from './modules/Ennemy';
+import EnnemiesHolder from './modules/EnnemiesHolder';
+import Particle from './modules/Particle';
+import ParticlesHolder from './modules/ParticlesHolder';
 
 // game variables
 var game,
@@ -15,7 +19,37 @@ var game,
   oldTime = new Date().getTime(),
   ennemiesPool = [],
   particlesPool = [],
-  particlesInUse = [];
+  // three.js related variables
+  scene,
+  camera,
+  fieldOfView,
+  aspectRatio,
+  nearPlane,
+  farPlane,
+  container,
+  renderer,
+  // screen & mouse variables
+  deviceHeight,
+  deviceWidth,
+  mousePos = { x: 0, y: 0 },
+  // lights
+  ambientLight,
+  hemisphereLight,
+  shadowLight,
+  // container
+  coinsHolder,
+  ennemiesHolder,
+  particlesHolder,
+  // UI
+  fieldDistance,
+  energyBar,
+  replayMessage,
+  fieldLevel,
+  levelCircle;
+
+let sea;
+let sky;
+let airplane;
 
 function resetGame() {
   game = {
@@ -80,245 +114,8 @@ function resetGame() {
     status: 'playing',
   };
 
-  filedLevel.innerHTML = Math.floor(game.level);
+  fieldLevel.innerHTML = Math.floor(game.level);
 }
-
-// three.js related variables
-var scene,
-  camera,
-  fieldOfView,
-  aspectRatio,
-  nearPlane,
-  farPlane,
-  container,
-  renderer;
-
-// screen & mouse variables
-var deviceHeight,
-  deviceWidth,
-  mousePos = { x: 0, y: 0 };
-
-class Ennemy {
-  constructor() {
-    var geom = new THREE.TetrahedronGeometry(8, 2);
-    var mat = new THREE.MeshPhongMaterial({
-      color: Colors.red,
-      shininess: 0,
-      specular: 0xffffff,
-      shading: THREE.FlatShading,
-    });
-
-    this.mesh = new THREE.Mesh(geom, mat);
-    this.mesh.castShadow = true;
-    this.angle = 0;
-    this.dist = 0;
-  }
-}
-
-class EnnemiesHolder {
-  constructor() {
-    this.mesh = new THREE.Object3D();
-    this.ennemiesInUse = [];
-  }
-
-  spawnEnnemies() {
-    var nEnnemies = game.level;
-
-    for (let i = 0; i < nEnnemies; i++) {
-      let ennemy;
-      if (ennemiesPool.length) {
-        ennemy = ennemiesPool.pop();
-      } else {
-        ennemy = new Ennemy();
-      }
-      ennemy.angle = -(i * 0.1);
-      ennemy.distance = game.seaRadius
-        + game.planeDefaultHeight
-        + (-1 + (Math.random() * 2) * (game.planeAmpHeight - 20));
-      ennemy.mesh.position.x = Math.cos(ennemy.angle) * ennemy.distance;
-      ennemy.mesh.position.y = -game.seaRadius + Math.sin(ennemy.angle) * ennemy.distance;
-
-      this.mesh.add(ennemy.mesh);
-      this.ennemiesInUse.push(ennemy);
-    }
-  }
-  rotateEnnemies() {
-    this.ennemiesInUse.forEach((ennemy, i) => {
-      ennemy.angle += game.speed * deltaTime * game.ennemiesSpeed;
-      if (ennemy.angle > Math.PI * 2) ennemy.angle -= Math.PI * 2;
-
-      ennemy.mesh.position.x = Math.cos(ennemy.angle) * ennemy.distance;
-      ennemy.mesh.position.y = -game.seaRadius + Math.sin(ennemy.angle) * ennemy.distance;
-      ennemy.mesh.rotation.y += Math.random() * 0.1;
-      ennemy.mesh.rotation.z += Math.random() * 0.1;
-
-      const diffPos = airplane.mesh.position.clone().sub(ennemy.mesh.position.clone());
-      const d = diffPos.length();
-      if (d < game.ennemyDistanceTolerance) {
-        this.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.red, 3);
-        ennemiesPool.unshift(this.ennemiesInUse.splice(i, 1)[0]);
-        this.mesh.remove(ennemy.mesh);
-        game.planeCollisionSpeedX = 100 * diffPos.x / d;
-        game.planeCollisionSpeedY = 100 * diffPos.y / d;
-        ambientLight.intensity = 2;
-
-        removeEnergy();
-        i--;
-      } else if (ennemy.angle > Math.PI) {
-        ennemiesPool.unshift(this.ennemiesInUse.splice(i, 1)[0]);
-        this.mesh.remove(ennemy.mesh);
-        i--;
-      }
-    });
-  }
-}
-
-class Particle {
-  constructor() {
-    const geom = new THREE.TetrahedronGeometry(3, 0);
-    const mat = new THREE.MeshPhongMaterial({
-      color: 0x009999,
-      shininess: 0,
-      specular: 0xffffff,
-      shading: THREE.FlatShading,
-    });
-    this.mesh = new THREE.Mesh(geom, mat);
-  }
-
-  explode(pos, color, scale) {
-    const self = this;
-    const p = this.mesh.parent;
-    this.mesh.material.color = new THREE.Color(color);
-    this.mesh.material.needsUpdate = true;
-    this.mesh.scale.set(scale, scale, scale);
-    const targetX = pos.x + (-1 + Math.random() * 2) * 50;
-    const targetY = pos.y + (-1 + Math.random() * 2) * 50;
-    const speed = 0.6 * Math.random() * 0.2;
-    TweenMax.to(this.mesh.rotation, speed, {
-      x: Math.random() * 12,
-      y: Math.random() * 12,
-    });
-    TweenMax.to(this.mesh.scale, speed, {
-      x: 0.1,
-      y: 0.1,
-      z: 0.1,
-    });
-    TweenMax.to(this.mesh.position, speed, {
-      x: targetX,
-      y: targetY,
-      delay: Math.random() * 0.1,
-      ease: Power2.easeOut,
-      onComplete() {
-        if (p) p.remove(self.mesh);
-        self.mesh.scale.set(1, 1, 1);
-        particlesPool.unshift(self);
-      },
-    });
-  }
-}
-
-class ParticlesHolder {
-  constructor() {
-    this.mesh = new THREE.Object3D();
-    this.particlesInUse = [];
-  }
-
-  spawnParticles(pos, density, color, scale) {
-    var nParticles = density;
-    for (let i = 0; i < nParticles; i++) {
-      let particle;
-      if (particlesPool.length) {
-        particle = particlesPool.pop();
-      } else {
-        particle = new Particle();
-      }
-      this.mesh.add(particle.mesh);
-      particle.mesh.visible = true;
-      particle.mesh.position.x = pos.x;
-      particle.mesh.position.y = pos.y;
-      particle.explode(pos, color, scale);
-    }
-  }
-}
-
-class Coin {
-  constructor() {
-    const geom = new THREE.TetrahedronGeometry(5, 0);
-    const mat = new THREE.MeshPhongMaterial({
-      color: 0x009999,
-      shininess: 0,
-      specular: 0xffffff,
-      shading: THREE.FlatShading,
-    });
-    this.mesh = new THREE.Mesh(geom, mat);
-    this.mesh.castShadow = true;
-    this.angle = 0;
-    this.dist = 0;
-  }
-}
-
-class CoinsHolder {
-  constructor(nCoins) {
-    this.mesh = new THREE.Object3D();
-    this.coinsInUse = [];
-    this.coinsPool = [];
-    for (let i = 0; i < nCoins; i++) {
-      const coin = new Coin();
-      this.coinsPool.push(coin);
-    }
-  }
-
-  spawnCoins() {
-    const nCoins = 1 + Math.floor(Math.random() * 10);
-    const d = game.seaRadius
-      + game.planeDefaultHeight
-      + (-1 + Math.random() * 2) * (game.planeAmpHeight - 20);
-    const amplitude = 10 + Math.round(Math.random() * 10);
-    for (let i = 0; i < nCoins; i++) {
-      let coin;
-      if (this.coinsPool.length) {
-        coin = this.coinsPool.pop();
-      } else {
-        coin = new Coin();
-      }
-      this.mesh.add(coin.mesh);
-      this.coinsInUse.push(coin);
-      coin.angle = -(i * 0.02);
-      coin.distance = d + Math.cos(i * 0.5) * amplitude;
-      coin.mesh.position.x = Math.cos(coin.angle) * coin.distance;
-      coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle) * coin.distance;
-    }
-  }
-  rotateCoins() {
-    for (let i = 0; i < this.coinsInUse.length; i++) {
-      const coin = this.coinsInUse[i];
-      if (coin.exploding) continue;
-      coin.angle += game.speed * deltaTime * game.coinsSpeed;
-      if (coin.angle > Math.PI * 2) coin.angle -= Math.PI * 2;
-      coin.mesh.position.x = Math.cos(coin.angle) * coin.distance;
-      coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle) * coin.distance;
-      coin.mesh.rotation.z += Math.random() * 0.1;
-      coin.mesh.rotation.y += Math.random() * 0.1;
-
-      const diffPos = airplane.mesh.position.clone().sub(coin.mesh.position.clone());
-      const d = diffPos.length();
-      if (d < game.coinDistanceTolerance) {
-        this.coinsPool.unshift(this.coinsInUse.splice(i, 1)[0]);
-        this.mesh.remove(coin.mesh);
-        particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0x009999, 0.8);
-        addEnergy();
-        i--;
-      } else if (coin.angle > Math.PI) {
-        this.coinsPool.unshift(this.coinsInUse.splice(i, 1)[0]);
-        this.mesh.remove(coin.mesh);
-        i--;
-      }
-    }
-  }
-}
-const sea = new Sea();
-let sky;
-let airplane;
 
 function createScene() {
   deviceHeight = window.innerHeight;
@@ -352,14 +149,15 @@ function createScene() {
 }
 
 function createSea() {
-  sea.mesh.position.y = -600;
+  sea = new Sea();
+  sea.mesh.position.y = -game.seaRadius;
   scene.add(sea.mesh);
 }
 
 function createLights() {
-  const hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
-  const shadowLight = new THREE.DirectionalLight(0xffffff, 0.9);
-  const ambientLight = new THREE.AmbientLight(0xdc8874, 0.5);
+  hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
+  shadowLight = new THREE.DirectionalLight(0xffffff, 0.9);
+  ambientLight = new THREE.AmbientLight(0xdc8874, 0.5);
   shadowLight.position.set(150, 350, 350);
   shadowLight.castShadow = true;
   shadowLight.shadow.camera.left = -400;
@@ -378,7 +176,7 @@ function createLights() {
 
 function createSky() {
   sky = new Sky();
-  sky.mesh.position.y = -600;
+  sky.mesh.position.y = -game.seaRadius;
   scene.add(sky.mesh);
 }
 
@@ -390,7 +188,7 @@ function createPlane() {
 }
 
 function createCoins() {
-  coinsHolder = new CoinsHolder(20);
+  coinsHolder = new CoinsHolder(20, game, airplane, deltaTime, particlesHolder);
   scene.add(coinsHolder.mesh);
 }
 
@@ -448,16 +246,52 @@ function removeEnergy() {
   game.energy = Math.max(0, game.energy);
 }
 
+function updateDistance() {
+  game.distance += game.speed * deltaTime * game.ratioSpeedDistance;
+  fieldDistance.innerHTML = Math.floor(game.distance);
+  const d = 502 * (1 - (game.distance % game.distanceForSpeedUpdate)
+    / game.distanceForLevelUpdate);
+  levelCircle.setAttribute('stroke-dashoffset', d);
+}
+
 function updatePlane() {
   game.planeSpeed = normalize(mousePos.x, -0.5, 0.5, game.planeMinSpeed, game.planeMaxSpeed);
+  const targetY = normalize(mousePos.y, -0.75, 0.75, game.planeDefaultHeight - game.planeAmpHeight,
+    game.planeDefaultHeight + game.planeAmpHeight);
+  const targetX = normalize(mousePos.x, -1, 1, -game.planeAmpWidth * 0.7, -game.planeAmpWidth);
 
-  const targetY = normalize(mousePos.y, -0.75, 0.75, 25, 175);
+  game.planeCollisionDisplacementX += game.planeCollisionSpeedX;
+  targetX += game.planeCollisionDisplacementX;
 
-  airplane.mesh.position.y += (targetY - airplane.mesh.position.y) * 0.1;
-  airplane.mesh.rotation.z = (targetY - airplane.mesh.position.y) * 0.0128;
-  airplane.mesh.rotation.x = (airplane.mesh.position.y - targetY) * 0.0064;
+  game.planeCollisionDisplacementY += game.planeCollisionSpeedY;
+  targetY += game.planeCollisionDisplacementY;
 
-  airplane.propeller.rotation.x += 0.3;
+  airplane.mesh.position.y += (targetY - airplane.mesh.position.y) * deltaTime * game.planeMoveSensivity;
+  airplane.mesh.position.x += (targetX - airplane.mesh.position.x) * deltaTime * game.planeMoveSensivity;
+
+  airplane.mesh.rotation.z = (targetY - airplane.mesh.position.y) * deltaTime * game.planeRotXSensivity;
+  airplane.mesh.rotation.x = (airplane.mesh.position.y - targetY) * deltaTime * game.planeRotZSensivity;
+
+  const targetCameraZ = normalize(game.planeSpeed, game.planeMinSpeed, game.planeMaxSpeed,
+      game.cameraNearPos, game.cameraFarPos);
+  camera.fov = normalize(mousePos.x, -1, 1, 40, 80);
+  camera.updateProjectionMatrix();
+  camera.position.y += (airplane.mesh.position.y - camera.position.y) * deltaTime * game.cameraSensivity;
+
+  game.planeCollisionSpeedX += (0 - game.planeCollisionSpeedX) * deltaTime * 0.03;
+  game.planeCollisionDisplacementX += (0 - game.planeCollisionDisplacementX) * deltaTime * 0.01;
+  game.planeCollisionSpeedY += (0 - game.planeCollisionSpeedY) * deltaTime * 0.03;
+  game.planeCollisionDisplacementY += (0 - game.planeCollisionDisplacementY) * deltaTime * 0.01;
+
+  airplane.pilot.updateHairs();
+}
+
+function showReplay() {
+  replayMessage.style.display = 'block';
+}
+
+function hideReplay() {
+  replayMessage.style.display = 'none';
 }
 
 function updateCameraFov() {
@@ -477,6 +311,13 @@ function handleMouseMove(event) {
   const tx = -1 + ((event.clientX / deviceWidth) * 2);
   const ty = 1 - ((event.clientY / deviceHeight) * 2);
 
+  mousePos = { x: tx, y: ty };
+}
+
+function handleTouchMove(event) {
+  event.preventDefault();
+  const tx = -1 + (event.touches[0].pageX / deviceWidth) * 2;
+  const ty = 1 - (event.clientY / deviceHeight) * 2;
   mousePos = { x: tx, y: ty };
 }
 
@@ -518,7 +359,8 @@ function loop() {
       && Math.floor(game.distance) > game.levelLastUpdate) {
       game.levelLastUpdate = Math.floor(game.distance);
       game.level++;
-      filedLevel.innerHTML = Math.incrementSpeedByLevel * game.level;
+      filedLevel.innerHTML = Math.floor(game.level);
+      game.targetBaseSpeed = game.initSpeed + game.incrementSpeedByLevel * game.level;
     }
     updatePlane();
     updateDistance();
@@ -558,17 +400,31 @@ function loop() {
 }
 
 function init() {
-  window.addEventListener('resize', handleWindowResize, false);
-  document.addEventListener('mousemove', handleMouseMove, false);
+  // UI
+  fieldDistance = document.getElementById('distValue');
+  energyBar = document.getElementById('energyBar');
+  replayMessage = document.getElementById('replayMessage');
+  fieldLevel = document.getElementById('levelValue');
+  levelCircle = document.getElementById('levelCircleStroke');
 
+  resetGame();
   createScene();
+
   createLights();
   createPlane();
   createSea();
   createSky();
+  createCoins();
+  createEnnemies();
+  createParticles();
+
+  window.addEventListener('resize', handleWindowResize, false);
+  document.addEventListener('mousemove', handleMouseMove, false);
+  document.addEventListener('touchmove', handleTouchMove, false);
+  document.addEventListener('mouseup', handleMouseUp, false);
+  document.addEventListener('touchend', handleTouchEnd, false);
 
   loop();
-  window.scene = scene;
 }
 
 window.addEventListener('load', init, false);
