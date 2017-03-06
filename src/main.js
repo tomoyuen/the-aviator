@@ -1,5 +1,5 @@
-/* global window, document */
 /* eslint no-console: off */
+/* eslint one-var: off */
 /* eslint no-param-reassign: ["error", { "props": false }] */
 import * as THREE from 'three';
 
@@ -12,13 +12,13 @@ import EnnemiesHolder from './modules/EnnemiesHolder';
 import Particle from './modules/Particle';
 import ParticlesHolder from './modules/ParticlesHolder';
 
+import state from './config';
+
+var { game, deltaTime, ennemiesPool, particlesPool } = state;
+
 // game variables
-var game,
-  deltaTime = 0,
-  newTime = new Date().getTime(),
+var newTime = new Date().getTime(),
   oldTime = new Date().getTime(),
-  ennemiesPool = [],
-  particlesPool = [],
   // three.js related variables
   scene,
   camera,
@@ -33,89 +33,19 @@ var game,
   deviceWidth,
   mousePos = { x: 0, y: 0 },
   // lights
-  ambientLight,
   hemisphereLight,
   shadowLight,
   // container
   coinsHolder,
   ennemiesHolder,
-  particlesHolder,
   // UI
+  fieldLevel,
   fieldDistance,
   energyBar,
   replayMessage,
-  fieldLevel,
-  levelCircle;
-
-let sea;
-let sky;
-let airplane;
-
-function resetGame() {
-  game = {
-    speed: 0,
-    initSpeed: 0.00035,
-    baseSpeed: 0.00035,
-    targetBaseSpeed: 0.00035,
-    incrementSpeedByTime: 0.0000025,
-    incrementSpeedByLevel: 0.000005,
-    distanceForSpeedUpdate: 100,
-    speedLastUpdate: 0,
-
-    distance: 0,
-    ratioSpeedDistance: 50,
-    energy: 100,
-    ratioSpeedEnergy: 3,
-
-    level: 1,
-    levelLastUpdate: 0,
-    distanceForLevelUpdate: 1000,
-
-    planeDefaultHeight: 100,
-    planeAmpHeight: 80,
-    planeAmpWidth: 75,
-    planeMoveSensivity: 0.005,
-    planeRotXSensivity: 0.0008,
-    planeRotZSensivity: 0.0004,
-    planeFallSpeed: 0.001,
-    planeMinSpeed: 1.2,
-    planeMaxSpeed: 1.6,
-    planeSpeed: 0,
-    planeCollisionDisplacementX: 0,
-    planeCollisionSpeedX: 0,
-
-    planeCollisionDisplacementY: 0,
-    planeCollisionSpeedY: 0,
-
-    seaRadius: 600,
-    seaLength: 800,
-
-    wavesMinAmp: 5,
-    wavesMaxAmp: 20,
-    wavesMinSpeed: 0.001,
-    wavesMaxSpeed: 0.003,
-
-    cameraFarPos: 500,
-    cameraNearPos: 150,
-    cameraSensivity: 0.002,
-
-    coinDistanceTolerance: 15,
-    coinValue: 3,
-    coinsSpeed: 0.5,
-    coinLastSpawn: 0,
-    distanceForCoinsSpawn: 100,
-
-    ennemyDistanceTolerance: 10,
-    ennemyValue: 10,
-    ennemiesSpeed: 0.6,
-    ennemyLastSpawn: 0,
-    distanceForEnnemiesSpawn: 50,
-
-    status: 'playing',
-  };
-
-  fieldLevel.innerHTML = Math.floor(game.level);
-}
+  levelCircle,
+  sea,
+  sky;
 
 function createScene() {
   deviceHeight = window.innerHeight;
@@ -157,7 +87,7 @@ function createSea() {
 function createLights() {
   hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
   shadowLight = new THREE.DirectionalLight(0xffffff, 0.9);
-  ambientLight = new THREE.AmbientLight(0xdc8874, 0.5);
+  game.ambientLight = new THREE.AmbientLight(0xdc8874, 0.5);
   shadowLight.position.set(150, 350, 350);
   shadowLight.castShadow = true;
   shadowLight.shadow.camera.left = -400;
@@ -171,7 +101,7 @@ function createLights() {
 
   scene.add(hemisphereLight);
   scene.add(shadowLight);
-  scene.add(ambientLight);
+  scene.add(game.ambientLight);
 }
 
 function createSky() {
@@ -181,14 +111,14 @@ function createSky() {
 }
 
 function createPlane() {
-  airplane = new AirPlane();
-  airplane.mesh.scale.set(0.25, 0.25, 0.25);
-  airplane.mesh.position.y = 100;
-  scene.add(airplane.mesh);
+  game.airplane = new AirPlane();
+  game.airplane.mesh.scale.set(0.25, 0.25, 0.25);
+  game.airplane.mesh.position.y = 100;
+  scene.add(game.airplane.mesh);
 }
 
 function createCoins() {
-  coinsHolder = new CoinsHolder(20, game, airplane, deltaTime, particlesHolder);
+  coinsHolder = new CoinsHolder(20, game, game.airplane, deltaTime, game.particlesHolder);
   scene.add(coinsHolder.mesh);
 }
 
@@ -206,8 +136,9 @@ function createParticles() {
     const particle = new Particle();
     particlesPool.push(particle);
   }
-  particlesHolder = new ParticlesHolder();
-  scene.add(particlesHolder);
+  game.particlesHolder = new ParticlesHolder();
+  console.log(game.particlesHolder);
+  scene.add(game.particlesHolder.mesh);
 }
 
 
@@ -236,16 +167,6 @@ function updateEnergy() {
   }
 }
 
-function addEnergy() {
-  game.energy += game.coinValue;
-  game.energy = Math.min(game.energy, 100);
-}
-
-function removeEnergy() {
-  game.energy -= game.ennemyValue;
-  game.energy = Math.max(0, game.energy);
-}
-
 function updateDistance() {
   game.distance += game.speed * deltaTime * game.ratioSpeedDistance;
   fieldDistance.innerHTML = Math.floor(game.distance);
@@ -255,10 +176,10 @@ function updateDistance() {
 }
 
 function updatePlane() {
-  game.planeSpeed = normalize(mousePos.x, -0.5, 0.5, game.planeMinSpeed, game.planeMaxSpeed);
-  const targetY = normalize(mousePos.y, -0.75, 0.75, game.planeDefaultHeight - game.planeAmpHeight,
+  var targetY = normalize(mousePos.y, -0.75, 0.75, game.planeDefaultHeight - game.planeAmpHeight,
     game.planeDefaultHeight + game.planeAmpHeight);
-  const targetX = normalize(mousePos.x, -1, 1, -game.planeAmpWidth * 0.7, -game.planeAmpWidth);
+  var targetX = normalize(mousePos.x, -1, 1, -game.planeAmpWidth * 0.7, -game.planeAmpWidth);
+  game.planeSpeed = normalize(mousePos.x, -0.5, 0.5, game.planeMinSpeed, game.planeMaxSpeed);
 
   game.planeCollisionDisplacementX += game.planeCollisionSpeedX;
   targetX += game.planeCollisionDisplacementX;
@@ -266,24 +187,39 @@ function updatePlane() {
   game.planeCollisionDisplacementY += game.planeCollisionSpeedY;
   targetY += game.planeCollisionDisplacementY;
 
-  airplane.mesh.position.y += (targetY - airplane.mesh.position.y) * deltaTime * game.planeMoveSensivity;
-  airplane.mesh.position.x += (targetX - airplane.mesh.position.x) * deltaTime * game.planeMoveSensivity;
+  game.airplane.mesh.position.y
+    += (targetY - game.airplane.mesh.position.y)
+    * deltaTime
+    * game.planeMoveSensivity;
+  game.airplane.mesh.position.x
+    += (targetX - game.airplane.mesh.position.x)
+    * deltaTime
+    * game.planeMoveSensivity;
 
-  airplane.mesh.rotation.z = (targetY - airplane.mesh.position.y) * deltaTime * game.planeRotXSensivity;
-  airplane.mesh.rotation.x = (airplane.mesh.position.y - targetY) * deltaTime * game.planeRotZSensivity;
+  game.airplane.mesh.rotation.z
+    = (targetY - game.airplane.mesh.position.y)
+    * deltaTime
+    * game.planeRotXSensivity;
+  game.airplane.mesh.rotation.x
+    = (game.airplane.mesh.position.y - targetY)
+    * deltaTime
+    * game.planeRotZSensivity;
 
-  const targetCameraZ = normalize(game.planeSpeed, game.planeMinSpeed, game.planeMaxSpeed,
-      game.cameraNearPos, game.cameraFarPos);
+  // const targetCameraZ = normalize(game.planeSpeed, game.planeMinSpeed, game.planeMaxSpeed,
+  //     game.cameraNearPos, game.cameraFarPos);
   camera.fov = normalize(mousePos.x, -1, 1, 40, 80);
   camera.updateProjectionMatrix();
-  camera.position.y += (airplane.mesh.position.y - camera.position.y) * deltaTime * game.cameraSensivity;
+  camera.position.y
+    += (game.airplane.mesh.position.y - camera.position.y)
+    * deltaTime
+    * game.cameraSensivity;
 
   game.planeCollisionSpeedX += (0 - game.planeCollisionSpeedX) * deltaTime * 0.03;
   game.planeCollisionDisplacementX += (0 - game.planeCollisionDisplacementX) * deltaTime * 0.01;
   game.planeCollisionSpeedY += (0 - game.planeCollisionSpeedY) * deltaTime * 0.03;
   game.planeCollisionDisplacementY += (0 - game.planeCollisionDisplacementY) * deltaTime * 0.01;
 
-  airplane.pilot.updateHairs();
+  game.airplane.pilot.updateHairs();
 }
 
 function showReplay() {
@@ -321,23 +257,23 @@ function handleTouchMove(event) {
   mousePos = { x: tx, y: ty };
 }
 
-function handleMouseUp(event) {
+function handleMouseUp() {
   if (game.status === 'waitingReplay') {
-    resetGame();
+    state.resetGame(fieldLevel);
     hideReplay();
   }
 }
 
-function handleTouchEnd(event) {
+function handleTouchEnd() {
   if (game.status === 'waitingReplay') {
-    resetGame();
+    state.resetGame(fieldLevel);
     hideReplay();
   }
 }
 
 function loop() {
   newTime = new Date().getTime();
-  deltaTime = newTime - oldTime;
+  state.updateTime(newTime, oldTime);
   oldTime = newTime;
   if (game.status === 'playing') {
     if (Math.floor(game.distance) % game.distanceForCoinsSpawn === 0
@@ -359,7 +295,7 @@ function loop() {
       && Math.floor(game.distance) > game.levelLastUpdate) {
       game.levelLastUpdate = Math.floor(game.distance);
       game.level++;
-      filedLevel.innerHTML = Math.floor(game.level);
+      fieldLevel.innerHTML = Math.floor(game.level);
       game.targetBaseSpeed = game.initSpeed + game.incrementSpeedByLevel * game.level;
     }
     updatePlane();
@@ -369,27 +305,30 @@ function loop() {
     game.speed = game.baseSpeed * game.planeSpeed;
   } else if (game.status === 'gameover') {
     game.speed *= 0.99;
-    airplane.mesh.rotation.z += (-Math.PI / 2 - airplane.mesh.rotation.z) * 0.0002 * deltaTime;
-    airplane.mesh.rotation.x += 0.0003 * deltaTime;
+    game.airplane.mesh.rotation.z
+      += (-Math.PI / 2 - game.airplane.mesh.rotation.z)
+      * 0.0002
+      * deltaTime;
+    game.airplane.mesh.rotation.x += 0.0003 * deltaTime;
     game.planeFallSpeed *= 1.05;
-    airplane.mesh.position.y -= game.planeFallSpeed * deltaTime;
-    if (airplane.mesh.position.y < -200) {
+    game.airplane.mesh.position.y -= game.planeFallSpeed * deltaTime;
+    if (game.airplane.mesh.position.y < -200) {
       showReplay();
       game.status = 'waitingReplay';
     }
   }
-  airplane.propeller.rotation.x += 0.2 + game.planeSpeed * deltaTime * 0.005;
+  game.airplane.propeller.rotation.x += 0.2 + game.planeSpeed * deltaTime * 0.005;
   sea.mesh.rotation.z += game.speed * deltaTime;
 
   if (sea.mesh.rotation.z > 2 * Math.PI) sea.mesh.rotation.z -= 2 * Math.PI;
-  ambientLight.intensity += (0.5 - ambientLight.intensity) * deltaTime * 0.005;
+  game.ambientLight.intensity += (0.5 - game.ambientLight.intensity) * deltaTime * 0.005;
 
   coinsHolder.rotateCoins();
   ennemiesHolder.rotateEnnemies();
 
   sky.moveClouds();
   sea.moveWaves();
-  airplane.pilot.updateHairs();
+  game.airplane.pilot.updateHairs();
   updateCameraFov();
   // sea.moveWaves();
 
@@ -401,13 +340,13 @@ function loop() {
 
 function init() {
   // UI
+  fieldLevel = document.getElementById('levelValue');
   fieldDistance = document.getElementById('distValue');
   energyBar = document.getElementById('energyBar');
   replayMessage = document.getElementById('replayMessage');
-  fieldLevel = document.getElementById('levelValue');
   levelCircle = document.getElementById('levelCircleStroke');
 
-  resetGame();
+  state.resetGame(fieldLevel);
   createScene();
 
   createLights();

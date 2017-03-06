@@ -1,6 +1,8 @@
 import * as THREE from 'three';
-import Colors from '../config';
+import state from '../config';
 import Pilot from './Pilot';
+
+var { Colors } = state;
 
 class AirPlane {
   constructor() {

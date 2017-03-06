@@ -1,6 +1,8 @@
 /* eslint no-param-reassign: ["error", { "props": false }] */
 import * as THREE from 'three';
-import Colors from '../config';
+import state from '../config';
+
+var { Colors } = state;
 
 class Sea {
   constructor() {

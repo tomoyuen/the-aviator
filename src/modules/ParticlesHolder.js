@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import Particle from './Particle';
+import state from '../config';
+
+var { particlesPool } = state;
 
 class ParticlesHolder {
   constructor() {
