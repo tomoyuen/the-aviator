@@ -1,9 +1,7 @@
 import * as THREE from 'three';
 import Coin from './Coin';
 
-import state from '../config';
-
-var { game, deltaTime } = state;
+import { game, deltaTime } from '../config';
 
 function addEnergy() {
   game.energy += game.coinValue;

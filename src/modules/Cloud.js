@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import state from '../config';
-
-var { Colors } = state;
+import { Colors } from '../config';
 
 class Cloud {
   constructor() {

@@ -1,9 +1,7 @@
 /* eslint no-param-reassign: off */
 import * as THREE from 'three';
-import state from '../config';
+import { Colors, game, deltaTime, ennemiesPool } from '../config';
 import Ennemy from './Ennemy';
-
-var { Colors, game, deltaTime, ennemiesPool } = state;
 
 function removeEnergy() {
   game.energy -= game.ennemyValue;

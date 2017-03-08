@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import { TweenMax, Power2 } from 'gsap';
-import state from '../config';
-
-var { particlesPool } = state;
+import { particlesPool } from '../config';
 
 class Particle {
   constructor() {

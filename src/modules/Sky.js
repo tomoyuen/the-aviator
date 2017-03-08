@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import Cloud from './Cloud';
-import state from '../config';
-
-var { game, deltaTime } = state;
+import { game, deltaTime } from '../config';
 
 class Sky {
   constructor() {
