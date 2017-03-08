@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Coin from './Coin';
 
-import { game, deltaTime } from '../config';
+import { game, deltaTime, element } from '../config';
 
 function addEnergy() {
   game.energy += game.coinValue;
@@ -51,7 +51,7 @@ class CoinsHolder {
       coin.mesh.rotation.z += Math.random() * 0.1;
       coin.mesh.rotation.y += Math.random() * 0.1;
 
-      const diffPos = game.airplane.mesh.position.clone().sub(coin.mesh.position.clone());
+      const diffPos = element.airplane.mesh.position.clone().sub(coin.mesh.position.clone());
       const d = diffPos.length();
       if (d < game.coinDistanceTolerance) {
         this.coinsPool.unshift(this.coinsInUse.splice(i, 1)[0]);

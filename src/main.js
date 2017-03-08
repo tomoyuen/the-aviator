@@ -12,7 +12,7 @@ import EnnemiesHolder from './modules/EnnemiesHolder';
 import Particle from './modules/Particle';
 import ParticlesHolder from './modules/ParticlesHolder';
 
-import { game, deltaTime, ennemiesPool, particlesPool, resetGame, updateTime } from './config';
+import { game, deltaTime, ennemiesPool, particlesPool, resetGame, updateTime, element } from './config';
 
 // game variables
 var newTime = new Date().getTime(),
@@ -85,7 +85,7 @@ function createSea() {
 function createLights() {
   hemisphereLight = new THREE.HemisphereLight(0xaaaaaa, 0x000000, 0.9);
   shadowLight = new THREE.DirectionalLight(0xffffff, 0.9);
-  game.ambientLight = new THREE.AmbientLight(0xdc8874, 0.5);
+  element.ambientLight = new THREE.AmbientLight(0xdc8874, 0.5);
   shadowLight.position.set(150, 350, 350);
   shadowLight.castShadow = true;
   shadowLight.shadow.camera.left = -400;
@@ -99,7 +99,7 @@ function createLights() {
 
   scene.add(hemisphereLight);
   scene.add(shadowLight);
-  scene.add(game.ambientLight);
+  scene.add(element.ambientLight);
 }
 
 function createSky() {
@@ -109,14 +109,14 @@ function createSky() {
 }
 
 function createPlane() {
-  game.airplane = new AirPlane();
-  game.airplane.mesh.scale.set(0.25, 0.25, 0.25);
-  game.airplane.mesh.position.y = 100;
-  scene.add(game.airplane.mesh);
+  element.airplane = new AirPlane();
+  element.airplane.mesh.scale.set(0.25, 0.25, 0.25);
+  element.airplane.mesh.position.y = 100;
+  scene.add(element.airplane.mesh);
 }
 
 function createCoins() {
-  coinsHolder = new CoinsHolder(20, game, game.airplane, deltaTime, game.particlesHolder);
+  coinsHolder = new CoinsHolder(20, game, element.airplane, deltaTime, element.particlesHolder);
   scene.add(coinsHolder.mesh);
 }
 
@@ -134,8 +134,8 @@ function createParticles() {
     const particle = new Particle();
     particlesPool.push(particle);
   }
-  game.particlesHolder = new ParticlesHolder();
-  scene.add(game.particlesHolder.mesh);
+  element.particlesHolder = new ParticlesHolder();
+  scene.add(element.particlesHolder.mesh);
 }
 
 
@@ -184,21 +184,21 @@ function updatePlane() {
   game.planeCollisionDisplacementY += game.planeCollisionSpeedY;
   targetY += game.planeCollisionDisplacementY;
 
-  game.airplane.mesh.position.y
-    += (targetY - game.airplane.mesh.position.y)
+  element.airplane.mesh.position.y
+    += (targetY - element.airplane.mesh.position.y)
     * deltaTime
     * game.planeMoveSensivity;
-  game.airplane.mesh.position.x
-    += (targetX - game.airplane.mesh.position.x)
+  element.airplane.mesh.position.x
+    += (targetX - element.airplane.mesh.position.x)
     * deltaTime
     * game.planeMoveSensivity;
 
-  game.airplane.mesh.rotation.z
-    = (targetY - game.airplane.mesh.position.y)
+  element.airplane.mesh.rotation.z
+    = (targetY - element.airplane.mesh.position.y)
     * deltaTime
     * game.planeRotXSensivity;
-  game.airplane.mesh.rotation.x
-    = (game.airplane.mesh.position.y - targetY)
+  element.airplane.mesh.rotation.x
+    = (element.airplane.mesh.position.y - targetY)
     * deltaTime
     * game.planeRotZSensivity;
 
@@ -207,7 +207,7 @@ function updatePlane() {
   camera.fov = normalize(mousePos.x, -1, 1, 40, 80);
   camera.updateProjectionMatrix();
   camera.position.y
-    += (game.airplane.mesh.position.y - camera.position.y)
+    += (element.airplane.mesh.position.y - camera.position.y)
     * deltaTime
     * game.cameraSensivity;
 
@@ -216,7 +216,7 @@ function updatePlane() {
   game.planeCollisionSpeedY += (0 - game.planeCollisionSpeedY) * deltaTime * 0.03;
   game.planeCollisionDisplacementY += (0 - game.planeCollisionDisplacementY) * deltaTime * 0.01;
 
-  game.airplane.pilot.updateHairs();
+  element.airplane.pilot.updateHairs();
 }
 
 function showReplay() {
@@ -302,30 +302,30 @@ function loop() {
     game.speed = game.baseSpeed * game.planeSpeed;
   } else if (game.status === 'gameover') {
     game.speed *= 0.99;
-    game.airplane.mesh.rotation.z
-      += (-Math.PI / 2 - game.airplane.mesh.rotation.z)
+    element.airplane.mesh.rotation.z
+      += (-Math.PI / 2 - element.airplane.mesh.rotation.z)
       * 0.0002
       * deltaTime;
-    game.airplane.mesh.rotation.x += 0.0003 * deltaTime;
+    element.airplane.mesh.rotation.x += 0.0003 * deltaTime;
     game.planeFallSpeed *= 1.05;
-    game.airplane.mesh.position.y -= game.planeFallSpeed * deltaTime;
-    if (game.airplane.mesh.position.y < -200) {
+    element.airplane.mesh.position.y -= game.planeFallSpeed * deltaTime;
+    if (element.airplane.mesh.position.y < -200) {
       showReplay();
       game.status = 'waitingReplay';
     }
   }
-  game.airplane.propeller.rotation.x += 0.2 + game.planeSpeed * deltaTime * 0.005;
+  element.airplane.propeller.rotation.x += 0.2 + game.planeSpeed * deltaTime * 0.005;
   sea.mesh.rotation.z += game.speed * deltaTime;
 
   if (sea.mesh.rotation.z > 2 * Math.PI) sea.mesh.rotation.z -= 2 * Math.PI;
-  game.ambientLight.intensity += (0.5 - game.ambientLight.intensity) * deltaTime * 0.005;
+  element.ambientLight.intensity += (0.5 - element.ambientLight.intensity) * deltaTime * 0.005;
 
   coinsHolder.rotateCoins();
   ennemiesHolder.rotateEnnemies();
 
   sky.moveClouds();
   sea.moveWaves();
-  game.airplane.pilot.updateHairs();
+  element.airplane.pilot.updateHairs();
   updateCameraFov();
   // sea.moveWaves();
 
@@ -344,10 +344,8 @@ function init() {
   levelCircle = document.getElementById('levelCircleStroke');
 
   resetGame(fieldLevel);
+
   createScene();
-
-  console.log(game);
-
   createLights();
   createPlane();
   createSea();

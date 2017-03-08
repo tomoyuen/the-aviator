@@ -1,6 +1,6 @@
 /* eslint no-param-reassign: off */
 import * as THREE from 'three';
-import { Colors, game, deltaTime, ennemiesPool } from '../config';
+import { Colors, game, deltaTime, ennemiesPool, element } from '../config';
 import Ennemy from './Ennemy';
 
 function removeEnergy() {
@@ -45,15 +45,15 @@ class EnnemiesHolder {
       ennemy.mesh.rotation.y += Math.random() * 0.1;
       ennemy.mesh.rotation.z += Math.random() * 0.1;
 
-      const diffPos = game.airplane.mesh.position.clone().sub(ennemy.mesh.position.clone());
+      const diffPos = element.airplane.mesh.position.clone().sub(ennemy.mesh.position.clone());
       const d = diffPos.length();
       if (d < game.ennemyDistanceTolerance) {
-        this.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.red, 3);
+        element.particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.red, 3);
         ennemiesPool.unshift(this.ennemiesInUse.splice(i, 1)[0]);
         this.mesh.remove(ennemy.mesh);
         game.planeCollisionSpeedX = 100 * diffPos.x / d;
         game.planeCollisionSpeedY = 100 * diffPos.y / d;
-        game.ambientLight.intensity = 2;
+        element.ambientLight.intensity = 2;
 
         removeEnergy();
         i--;

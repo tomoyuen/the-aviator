@@ -14,6 +14,8 @@ export let game = {};
 export let deltaTime = 0;
 export const ennemiesPool = [];
 export const particlesPool = [];
+export let element = {};
+
 export function resetGame(target) {
   game = {
     speed: 0,
@@ -78,7 +80,6 @@ export function resetGame(target) {
   };
   target.innerHTML = Math.floor(game.level);
 }
-
 export function updateTime(oldTime, newTime) {
   deltaTime = newTime - oldTime;
 }

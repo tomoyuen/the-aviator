@@ -2,8 +2,6 @@ import * as THREE from 'three';
 import { Colors } from '../config';
 import Pilot from './Pilot';
 
-console.log(Colors);
-
 class AirPlane {
   constructor() {
     this.mesh = new THREE.Object3D();
