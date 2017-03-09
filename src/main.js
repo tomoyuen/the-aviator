@@ -116,7 +116,7 @@ function createPlane() {
 }
 
 function createCoins() {
-  coinsHolder = new CoinsHolder(20, game, element.airplane, deltaTime, element.particlesHolder);
+  coinsHolder = new CoinsHolder(20);
   scene.add(coinsHolder.mesh);
 }
 
@@ -134,6 +134,7 @@ function createParticles() {
     const particle = new Particle();
     particlesPool.push(particle);
   }
+  console.log(particlesPool);
   element.particlesHolder = new ParticlesHolder();
   scene.add(element.particlesHolder.mesh);
 }
@@ -167,8 +168,9 @@ function updateEnergy() {
 function updateDistance() {
   game.distance += game.speed * deltaTime * game.ratioSpeedDistance;
   fieldDistance.innerHTML = Math.floor(game.distance);
-  const d = 502 * (1 - (game.distance % game.distanceForSpeedUpdate)
-    / game.distanceForLevelUpdate);
+  const d = 502 * (1 -
+    ((game.distance % game.distanceForLevelUpdate)
+    / game.distanceForLevelUpdate));
   levelCircle.setAttribute('stroke-dashoffset', d);
 }
 

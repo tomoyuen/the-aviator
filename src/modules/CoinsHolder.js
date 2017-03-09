@@ -37,7 +37,7 @@ class CoinsHolder {
       coin.angle = -(i * 0.02);
       coin.distance = d + Math.cos(i * 0.5) * amplitude;
       coin.mesh.position.x = Math.cos(coin.angle) * coin.distance;
-      coin.mesh.position.y = game.seaRadius + Math.sin(coin.angle) * coin.distance;
+      coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle) * coin.distance;
     }
   }
   rotateCoins() {
@@ -47,7 +47,7 @@ class CoinsHolder {
       coin.angle += game.speed * deltaTime * game.coinsSpeed;
       if (coin.angle > Math.PI * 2) coin.angle -= Math.PI * 2;
       coin.mesh.position.x = Math.cos(coin.angle) * coin.distance;
-      coin.mesh.position.y = game.seaRadius + Math.sin(coin.angle) * coin.distance;
+      coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle) * coin.distance;
       coin.mesh.rotation.z += Math.random() * 0.1;
       coin.mesh.rotation.y += Math.random() * 0.1;
 
@@ -56,7 +56,7 @@ class CoinsHolder {
       if (d < game.coinDistanceTolerance) {
         this.coinsPool.unshift(this.coinsInUse.splice(i, 1)[0]);
         this.mesh.remove(coin.mesh);
-        game.particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0x009999, 0.8);
+        element.particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0x009999, 0.8);
         addEnergy();
         i--;
       } else if (coin.angle > Math.PI) {

@@ -39,7 +39,7 @@
     "webpack-dev-server": "^1.16.1"
   },
   "dependencies": {
-    "gsap": "^1.19.0",
+    "gsap": "^1.19.1",
     "three": "^0.81.0"
   }
 }
