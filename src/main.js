@@ -1,4 +1,3 @@
-/* eslint no-console: off */
 /* eslint one-var: off */
 /* eslint no-param-reassign: ["error", { "props": false }] */
 import * as THREE from 'three';
@@ -134,7 +133,6 @@ function createParticles() {
     const particle = new Particle();
     particlesPool.push(particle);
   }
-  console.log(particlesPool);
   element.particlesHolder = new ParticlesHolder();
   scene.add(element.particlesHolder.mesh);
 }
