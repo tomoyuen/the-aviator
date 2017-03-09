@@ -1,64 +1,69 @@
 var path = require('path');
 var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+
+function resolve(dir) {
+  return path.join(__dirname, dir);
+}
 
 module.exports = {
   entry: './src/main.js',
   output: {
-    path: path.resolve(__dirname, './dist'),
-    publicPath: '/dist/',
-    filename: 'build.js'
+    path: resolve('dist'),
+    filename: '[name].js',
+    publicPath: 'dist',
+  },
+  resolve: {
+    extensions: ['.js'],
+    modules: [
+      resolve('src'),
+      resolve('node_modules'),
+    ],
   },
   resolveLoader: {
-    root: path.join(__dirname, 'node_modules'),
+    moduleExtensions: ['-loader'],
   },
   module: {
-    preLoaders: [
+    rules: [
       {
         test: /\.js$/,
-        loader: 'eslint',
-        include: path.resolve(__dirname, './src'),
-        exclude: /node_modules/
-      }
-    ],
-    loaders: [
-      {
-        test: /\.js$/,
-        loader: 'babel',
-        include: path.resolve(__dirname, './src'),
+        enforce: 'pre',
+        use: ['eslint'],
+        include: path.resolve(__dirname, './src/'),
         exclude: /node_modules/,
-        query: {
-          presets: ['es2015'],
-          plugins: ['transform-runtime'],
-        }
       },
       {
-        test: /\.(png|jpg|gif|svg)$/,
-        loader: 'file',
-        query: {
-          name: '[name].[ext]?[hash]'
-        }
-      }
-    ]
+        test: /\.js$/,
+        use: ['babel'],
+        include: path.resolve(__dirname, './src'),
+        exclude: /node_modules/,
+      },
+    ],
   },
-  devServer: {
-    historyApiFallback: true,
-    noInfo: true,
-    port: 8000,
-  },
-  devtool: '#eval-source-map',
   plugins: [
-    new webpack.NoErrorsPlugin(),
     new webpack.HotModuleReplacementPlugin(),
-  ]
-}
+    new webpack.NoEmitOnErrorsPlugin(),
+    new HtmlWebpackPlugin({
+      template: 'index.html',
+    }),
+  ],
+  devServer: {
+    contentBase: path.join(__dirname, 'dist'),
+    compress: true,
+    hot: true,
+    quiet: true,
+    port: process.env.PORT || 8080,
+  },
+  devtool: '#cheap-module-eval-source-map',
+};
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports.devtool = '#source-map'
+  module.exports.devtool = '#source-map';
   module.exports.plugins = (module.exports.plugins || []).concat([
     new webpack.DefinePlugin({
       'process.env': {
-        NODE_ENV: '"production"'
-      }
+        NODE_ENV: '"production"',
+      },
     }),
-  ])
+  ]);
 }
