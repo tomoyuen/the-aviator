@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Colors from '../config';
+import { Colors } from '../config';
 import Pilot from './Pilot';
 
 class AirPlane {

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Colors from '../config';
+import { Colors } from '../config';
 
 class Cloud {
   constructor() {
@@ -26,6 +26,14 @@ class Cloud {
       m.receiveShadow = true;
 
       this.mesh.add(m);
+    }
+  }
+  rotate() {
+    const l = this.mesh.children.length;
+    for (let i = 0; i < l; i++) {
+      const m = this.mesh.children[i];
+      m.rotation.z += Math.random() * 0.005 * (i + 1);
+      m.rotation.y += Math.random() * 0.005 * (i + 1);
     }
   }
 }
