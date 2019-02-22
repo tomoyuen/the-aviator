@@ -28,6 +28,7 @@ class Cloud {
       this.mesh.add(m);
     }
   }
+
   rotate() {
     const l = this.mesh.children.length;
     for (let i = 0; i < l; i++) {

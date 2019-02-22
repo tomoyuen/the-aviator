@@ -1,6 +1,12 @@
 /* eslint no-param-reassign: off */
 import * as THREE from 'three';
-import { Colors, game, deltaTime, ennemiesPool, element } from '../config';
+import {
+  Colors,
+  game,
+  deltaTime,
+  ennemiesPool,
+  element,
+} from '../config';
 import Ennemy from './Ennemy';
 
 function removeEnergy() {
@@ -35,6 +41,7 @@ class EnnemiesHolder {
       this.ennemiesInUse.push(ennemy);
     }
   }
+
   rotateEnnemies() {
     this.ennemiesInUse.forEach((ennemy, i) => {
       ennemy.angle += game.speed * deltaTime * game.ennemiesSpeed;
