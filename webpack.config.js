@@ -1,17 +1,20 @@
-var path = require('path');
-var webpack = require('webpack');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const devMode = process.env.NODE_ENV !== 'production';
 
 function resolve(dir) {
   return path.join(__dirname, dir);
 }
 
 module.exports = {
+  mode: devMode ? 'development' : 'production',
   entry: './src/main.js',
   output: {
     path: resolve('dist'),
-    filename: '[name].js',
-    publicPath: 'dist',
+    filename: `[name]${devMode ? '' : '.[hash]'}.js`,
+    publicPath: '.',
   },
   resolve: {
     extensions: ['.js'],
@@ -22,6 +25,11 @@ module.exports = {
   },
   resolveLoader: {
     moduleExtensions: ['-loader'],
+  },
+  performance: {
+    hints: 'warning',
+    maxAssetSize: 200000,
+    maxEntrypointSize: 400000,
   },
   module: {
     rules: [
@@ -47,6 +55,8 @@ module.exports = {
       template: 'index.html',
     }),
   ],
+  devtool: devMode ? 'cheap-module-eval-source-map' : false,
+  target: 'web',
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     compress: true,
@@ -54,16 +64,4 @@ module.exports = {
     quiet: true,
     port: process.env.PORT || 8080,
   },
-  devtool: '#cheap-module-eval-source-map',
 };
-
-if (process.env.NODE_ENV === 'production') {
-  module.exports.devtool = '#source-map';
-  module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"',
-      },
-    }),
-  ]);
-}

@@ -5,7 +5,7 @@
   "main": "./dist/main.js",
   "scripts": {
     "dev": "webpack --progress --colors && webpack-dev-server",
-    "build": "cross-env NODE_ENV=production webpack --progress --hide-modules",
+    "build": "rm -rf dist && cross-env NODE_ENV=production webpack --progress --hide-modules",
     "fix": "webpack --progress --profile --colors --display-error-details --display-cached"
   },
   "repository": {
