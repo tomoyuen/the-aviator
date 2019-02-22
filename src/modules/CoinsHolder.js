@@ -40,6 +40,7 @@ class CoinsHolder {
       coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle) * coin.distance;
     }
   }
+
   rotateCoins() {
     for (let i = 0; i < this.coinsInUse.length; i++) {
       const coin = this.coinsInUse[i];

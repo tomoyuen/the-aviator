@@ -83,4 +83,3 @@ export function resetGame(target) {
 export function updateTime(oldTime, newTime) {
   deltaTime = newTime - oldTime;
 }
-

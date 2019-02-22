@@ -11,7 +11,7 @@ class Sea {
 
     this.waves = [];
 
-    for (const item of geom.vertices) {
+    geom.vertices.forEach((item) => {
       this.waves.push({
         y: item.y,
         x: item.x,
@@ -20,7 +20,7 @@ class Sea {
         amp: 5 + (Math.random() * 15),
         speed: 0.016 + (Math.random() * 0.032),
       });
-    }
+    });
 
     const mat = new THREE.MeshPhongMaterial({
       color: Colors.blue,

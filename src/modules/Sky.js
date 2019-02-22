@@ -24,6 +24,7 @@ class Sky {
       this.mesh.add(c.mesh);
     }
   }
+
   moveClouds() {
     for (let i = 0; i < this.nClouds; i++) {
       const c = this.clouds[i];

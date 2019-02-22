@@ -11,7 +11,15 @@ import EnnemiesHolder from './modules/EnnemiesHolder';
 import Particle from './modules/Particle';
 import ParticlesHolder from './modules/ParticlesHolder';
 
-import { game, deltaTime, ennemiesPool, particlesPool, resetGame, updateTime, element } from './config';
+import {
+  game,
+  deltaTime,
+  ennemiesPool,
+  particlesPool,
+  resetGame,
+  updateTime,
+  element,
+} from './config';
 
 // game variables
 var newTime = new Date().getTime(),
@@ -28,7 +36,10 @@ var newTime = new Date().getTime(),
   // screen & mouse variables
   deviceHeight,
   deviceWidth,
-  mousePos = { x: 0, y: 0 },
+  mousePos = {
+    x: 0,
+    y: 0,
+  },
   // lights
   hemisphereLight,
   shadowLight,
@@ -49,7 +60,8 @@ function createScene() {
   deviceWidth = window.innerWidth;
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xf7d9aa, 100, 950);
+  scene.fog = new THREE.Fog(0xf7d9aa,
+    100, 950);
 
   aspectRatio = deviceWidth / deviceHeight;
   fieldOfView = 50;
@@ -60,7 +72,7 @@ function createScene() {
     fieldOfView,
     aspectRatio,
     nearPlane,
-    farPlane
+    farPlane,
   );
   camera.position.set(0, game.planeDefaultHeight, 200);
 
@@ -166,8 +178,8 @@ function updateEnergy() {
 function updateDistance() {
   game.distance += game.speed * deltaTime * game.ratioSpeedDistance;
   fieldDistance.innerHTML = Math.floor(game.distance);
-  const d = 502 * (1 -
-    ((game.distance % game.distanceForLevelUpdate)
+  const d = 502 * (1
+    - ((game.distance % game.distanceForLevelUpdate)
     / game.distanceForLevelUpdate));
   levelCircle.setAttribute('stroke-dashoffset', d);
 }
@@ -193,12 +205,10 @@ function updatePlane() {
     * deltaTime
     * game.planeMoveSensivity;
 
-  element.airplane.mesh.rotation.z
-    = (targetY - element.airplane.mesh.position.y)
+  element.airplane.mesh.rotation.z = (targetY - element.airplane.mesh.position.y)
     * deltaTime
     * game.planeRotXSensivity;
-  element.airplane.mesh.rotation.x
-    = (element.airplane.mesh.position.y - targetY)
+  element.airplane.mesh.rotation.x = (element.airplane.mesh.position.y - targetY)
     * deltaTime
     * game.planeRotZSensivity;
 
