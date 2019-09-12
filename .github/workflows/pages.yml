@@ -1,4 +1,4 @@
-name: automatic depoly to github pages
+name: automatic deploy to github pages
 
 on:
   push:
@@ -19,4 +19,5 @@ jobs:
       env:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         BRANCH: gh-pages
+        FOLDER: dist
         BUILD_SCRIPT: npm install && npm run build
