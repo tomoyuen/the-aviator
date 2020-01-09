@@ -1,6 +1,6 @@
 {
   "name": "the-aviator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "a 3d games",
   "main": "./dist/main.js",
   "scripts": {
